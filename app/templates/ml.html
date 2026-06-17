@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}ML Prediction — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+  <div style="margin-bottom: 1.5rem;">
+    <h2>🤖 ML Prediction</h2>
+    <p>Select feature and target columns to train a Linear Regression model.</p>
+  </div>
+
+  <!-- TRAIN FORM -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Train Model</div>
+
+    <form method="POST" style="margin-top: 0.75rem;">
+      <input type="hidden" name="action" value="train">
+
+      <div class="grid-2">
+
+        <div class="form-group">
+          <label>Feature Columns (select multiple)</label>
+          <select name="features" multiple style="height: 140px;">
+            {% for col in columns %}
+              <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+          </select>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Hold Ctrl / Cmd to select multiple</div>
+        </div>
+
+        <div class="form-group">
+          <label>Target Column</label>
+          <select name="target">
+            {% for col in columns %}
+              <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn">Train Model →</button>
+
+    </form>
+  </div>
+
+  {% if result %}
+
+  <!-- METRICS -->
+  <div class="grid-3" style="margin-bottom: 1.5rem;">
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--blue);">{{ result.metrics.r2_score }}</div>
+      <div class="kpi-label">R² Score</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--yellow);">{{ result.metrics.mae }}</div>
+      <div class="kpi-label">Mean Abs Error</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:var(--green);">{{ result.metrics.rmse }}</div>
+      <div class="kpi-label">RMSE</div>
+    </div>
+
+  </div>
+
+  <!-- FEATURE IMPORTANCE -->
+  <div class="grid-2" style="margin-bottom: 1.5rem;">
+
+    <div class="card">
+      <div class="card-title">Feature Importance</div>
+      <div style="margin-top:0.75rem;">
+        {% for col, coef in result.feature_importance.items() %}
+        <div class="ml-stat-row">
+          <span class="ml-stat-label">{{ col }}</span>
+          <span class="ml-stat-value {{ 'text-green' if coef > 0 else 'text-red' }}">{{ coef }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Model Info</div>
+      <div style="margin-top:0.75rem;">
+        <div class="ml-stat-row">
+          <span class="ml-stat-label">Training Samples</span>
+          <span class="ml-stat-value">{{ result.metrics.train_size }}</span>
+        </div>
+        <div class="ml-stat-row">
+          <span class="ml-stat-label">Test Samples</span>
+          <span class="ml-stat-value">{{ result.metrics.test_size }}</span>
+        </div>
+        <div class="ml-stat-row">
+          <span class="ml-stat-label">Target Column</span>
+          <span class="ml-stat-value">{{ result.target_col }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS -->
+  {% if result.charts %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Model Charts</div>
+    <div class="chart-grid" style="margin-top: 0.75rem;">
+      <img src="data:image/png;base64,{{ result.charts.actual_vs_pred }}" class="chart-img">
+      <img src="data:image/png;base64,{{ result.charts.feature_importance }}" class="chart-img">
+      <img src="data:image/png;base64,{{ result.charts.residuals }}" class="chart-img">
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- PREDICT NEW INPUT -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Predict New Value</div>
+    <form method="POST" style="margin-top:0.75rem;">
+      <input type="hidden" name="action" value="predict">
+      <div class="grid-2">
+        {% for col in result.feature_cols %}
+        <div class="form-group">
+          <label>{{ col }}</label>
+          <input type="text" name="{{ col }}" placeholder="Enter value for {{ col }}" required>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn">Predict →</button>
+    </form>
+
+    {% if prediction is not none %}
+    <div style="margin-top:1.25rem; padding:1rem; background:var(--blue-glow); border:1px solid rgba(59,130,246,0.2); border-radius:var(--radius-sm);">
+      <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">Predicted {{ result.target_col }}</div>
+      <div class="ml-result-value">{{ prediction }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% endif %}
+
+  <a href="{{ url_for('auth.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+
+</div>
+
+{% endblock %}

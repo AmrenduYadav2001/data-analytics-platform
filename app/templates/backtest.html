@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Backtest — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div style="margin-bottom: 1.5rem;">
+    <h2>🔬 Strategy Backtester</h2>
+    <p>Test how our Buy/Sell signals performed on any stock over the last 2 years using real historical data.</p>
+  </div>
+
+  <!-- SEARCH FORM -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Run Backtest</div>
+    <form method="POST" style="margin-top:0.75rem; display:flex; gap:10px; align-items:flex-end;">
+      <div class="form-group" style="flex:1; margin:0;">
+        <label>Stock Symbol</label>
+        <input type="text" name="symbol" placeholder="e.g. RELIANCE, TCS, INFY, HDFCBANK" required>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Starting Capital (₹)</label>
+        <input type="number" name="capital" value="100000" min="10000" step="10000">
+      </div>
+      <button type="submit" class="btn">Run Backtest →</button>
+    </form>
+    <div style="margin-top:0.75rem; font-size:0.8rem; color:var(--text-muted);">
+      Strategy: Moving Average Crossover (MA7 vs MA20) &nbsp;·&nbsp; Period: 2 Years &nbsp;·&nbsp; Data: NSE India
+    </div>
+  </div>
+
+  {% if result %}
+
+  <!-- METRICS -->
+  <div class="grid-4" style="margin-bottom:1.5rem;">
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color: {{ '#22c55e' if result.metrics.total_return > 0 else '#ef4444' }};">
+        {{ '+' if result.metrics.total_return > 0 else '' }}{{ result.metrics.total_return }}%
+      </div>
+      <div class="kpi-label">Total Return</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color: {{ '#22c55e' if result.metrics.win_rate >= 55 else '#f59e0b' if result.metrics.win_rate >= 45 else '#ef4444' }};">
+        {{ result.metrics.win_rate }}%
+      </div>
+      <div class="kpi-label">Win Rate</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value">{{ result.metrics.total_trades }}</div>
+      <div class="kpi-label">Total Trades</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value" style="color: {{ '#22c55e' if result.metrics.profit_factor > 1 else '#ef4444' }};">
+        {{ result.metrics.profit_factor }}x
+      </div>
+      <div class="kpi-label">Profit Factor</div>
+    </div>
+
+  </div>
+
+  <!-- DETAILED STATS -->
+  <div class="grid-2" style="margin-bottom:1.5rem;">
+
+    <div class="card">
+      <div class="card-title">Performance Summary</div>
+      <div style="margin-top:0.75rem;">
+
+        <div class="risk-row">
+          <span>Starting Capital</span>
+          <span style="font-family:'JetBrains Mono',monospace;">₹{{ "{:,.0f}".format(result.initial_capital) }}</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Final Capital</span>
+          <span style="font-family:'JetBrains Mono',monospace;
+            color:{{ '#22c55e' if result.metrics.final_capital > result.initial_capital else '#ef4444' }}">
+            ₹{{ "{:,.0f}".format(result.metrics.final_capital) }}
+          </span>
+        </div>
+
+        <div class="risk-row">
+          <span>Net Profit / Loss</span>
+          <span style="font-family:'JetBrains Mono',monospace;
+            color:{{ '#22c55e' if result.metrics.final_capital > result.initial_capital else '#ef4444' }}">
+            {{ '+' if result.metrics.final_capital > result.initial_capital else '' }}
+            ₹{{ "{:,.0f}".format(result.metrics.final_capital - result.initial_capital) }}
+          </span>
+        </div>
+
+        <div class="risk-row">
+          <span>Max Drawdown</span>
+          <span class="text-red">{{ result.metrics.max_drawdown }}%</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Avg Profit per Win</span>
+          <span class="text-green">₹{{ "{:,.0f}".format(result.metrics.avg_profit) }}</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Avg Loss per Loss</span>
+          <span class="text-red">₹{{ "{:,.0f}".format(result.metrics.avg_loss) }}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Trade Breakdown</div>
+      <div style="margin-top:0.75rem;">
+
+        <div class="risk-row">
+          <span>Total Trades</span>
+          <span style="font-family:'JetBrains Mono',monospace;">{{ result.metrics.total_trades }}</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Winning Trades</span>
+          <span class="text-green">{{ result.metrics.winning_trades }}</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Losing Trades</span>
+          <span class="text-red">{{ result.metrics.losing_trades }}</span>
+        </div>
+
+        <div class="risk-row">
+          <span>Win Rate</span>
+          <span style="font-family:'JetBrains Mono',monospace;
+            color:{{ '#22c55e' if result.metrics.win_rate >= 55 else '#f59e0b' if result.metrics.win_rate >= 45 else '#ef4444' }}">
+            {{ result.metrics.win_rate }}%
+          </span>
+        </div>
+
+        <div class="risk-row">
+          <span>Profit Factor</span>
+          <span style="font-family:'JetBrains Mono',monospace;
+            color:{{ '#22c55e' if result.metrics.profit_factor > 1 else '#ef4444' }}">
+            {{ result.metrics.profit_factor }}x
+          </span>
+        </div>
+
+        <!-- visual win/loss bar -->
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Win / Loss Ratio</div>
+          <div style="height:8px; border-radius:99px; background:var(--navy-light); overflow:hidden;">
+            <div style="height:100%; width:{{ result.metrics.win_rate }}%; background:linear-gradient(90deg,#22c55e,#16a34a); border-radius:99px; transition:width 0.5s;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-top:4px;">
+            <span class="text-green">{{ result.metrics.winning_trades }} wins</span>
+            <span class="text-red">{{ result.metrics.losing_trades }} losses</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STRATEGY RATING -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-title">Strategy Rating</div>
+    <div style="margin-top:0.75rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+
+      {% if result.metrics.total_return > 15 and result.metrics.win_rate > 55 %}
+        <span class="badge badge-green" style="font-size:1rem; padding:8px 20px;">⭐ Excellent Strategy</span>
+        <p style="margin:0;">Strong returns with good win rate. This strategy performed well historically.</p>
+
+      {% elif result.metrics.total_return > 0 and result.metrics.win_rate > 45 %}
+        <span class="badge badge-yellow" style="font-size:1rem; padding:8px 20px;">👍 Decent Strategy</span>
+        <p style="margin:0;">Positive returns. Could be improved with additional filters.</p>
+
+      {% elif result.metrics.total_return > 0 %}
+        <span class="badge badge-blue" style="font-size:1rem; padding:8px 20px;">⚠️ Marginal Strategy</span>
+        <p style="margin:0;">Slightly positive but low win rate. Use with caution.</p>
+
+      {% else %}
+        <span class="badge badge-red" style="font-size:1rem; padding:8px 20px;">❌ Poor Strategy</span>
+        <p style="margin:0;">Negative returns on this stock. This strategy did not work well here.</p>
+      {% endif %}
+
+      <div style="margin-left:auto; font-size:0.8rem; color:var(--text-muted);">
+        ⚠️ Past performance does not guarantee future results.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-title">Signal Chart — 2 Years</div>
+    <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">
+      🟢 Green triangles = BUY signal &nbsp;·&nbsp; 🔴 Red triangles = SELL signal
+    </div>
+    <div id="backtest-chart"></div>
+  </div>
+
+  <!-- TRADE HISTORY -->
+  {% if result.trades %}
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-title">Trade History ({{ result.trades | length }} trades)</div>
+    <div class="table-wrap" style="margin-top:0.75rem;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Buy Date</th>
+            <th>Buy Price</th>
+            <th>Sell Date</th>
+            <th>Sell Price</th>
+            <th>Profit / Loss</th>
+            <th>Return %</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trade in result.trades %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ trade.buy_date }}</td>
+            <td>₹{{ trade.buy_price }}</td>
+            <td>{{ trade.sell_date }}</td>
+            <td>₹{{ trade.sell_price }}</td>
+            <td style="color:{{ '#22c55e' if trade.profit_loss > 0 else '#ef4444' }}; font-family:'JetBrains Mono',monospace;">
+              {{ '+' if trade.profit_loss > 0 else '' }}₹{{ "{:,.0f}".format(trade.profit_loss) }}
+            </td>
+            <td style="color:{{ '#22c55e' if trade.profit_pct > 0 else '#ef4444' }}; font-family:'JetBrains Mono',monospace;">
+              {{ '+' if trade.profit_pct > 0 else '' }}{{ trade.profit_pct }}%
+            </td>
+            <td>
+              <span class="badge {{ 'badge-green' if trade.result == 'WIN' else 'badge-red' }}">
+                {{ trade.result }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- PLOTLY SCRIPT -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    var chartData = {{ result.chart | safe }};
+    Plotly.newPlot('backtest-chart', chartData.data, chartData.layout, { responsive: true });
+  </script>
+
+  {% endif %}
+
+  <!-- BACK LINK -->
+  <a href="{{ url_for('stock.stock_page') }}" class="btn btn-secondary">← Back to Stock Analyzer</a>
+
+</div>
+
+{% endblock %}

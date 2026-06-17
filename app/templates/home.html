@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Home — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">AI-Powered Analytics</div>
+  <h1>Turn Raw Data Into<br>Real Decisions</h1>
+  <p>Upload any CSV or Excel file and get instant insights — charts, patterns, ML predictions, and stock analysis in seconds.</p>
+  <a href="{{ url_for('auth.dashboard') }}" class="btn">Start Analyzing →</a>
+</div>
+
+<!-- FEATURES -->
+<div class="page">
+  <div class="grid-3" style="margin-bottom: 2rem;">
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h4>Smart Analysis</h4>
+      <p style="font-size:0.875rem; margin-top:0.5rem;">Auto-detect patterns, outliers, correlations, and missing data in any dataset.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h4>ML Prediction</h4>
+      <p style="font-size:0.875rem; margin-top:0.5rem;">Train linear regression models on your data and predict outcomes instantly.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h4>Stock Analyzer</h4>
+      <p style="font-size:0.875rem; margin-top:0.5rem;">Real-time NSE stock analysis with Buy/Sell signals and risk management.</p>
+    </div>
+
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="card" style="text-align:center;">
+    <div class="card-title" style="margin-bottom:1rem;">Built With</div>
+    <div>
+      <span class="tech-pill">Python</span>
+      <span class="tech-pill">Pandas</span>
+      <span class="tech-pill">NumPy</span>
+      <span class="tech-pill">Scikit-learn</span>
+      <span class="tech-pill">Matplotlib</span>
+      <span class="tech-pill">Plotly</span>
+      <span class="tech-pill">Flask</span>
+      <span class="tech-pill">SQLAlchemy</span>
+      <span class="tech-pill">yFinance</span>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

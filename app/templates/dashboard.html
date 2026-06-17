@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+  <!-- UPLOAD -->
+  <div class="upload-box" style="margin-bottom: 1.5rem;">
+    <div class="upload-icon">📂</div>
+    <h3>Upload Dataset</h3>
+    <p>Supports CSV and Excel files</p>
+    <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      {{ form.file() }}
+      <br>
+      {{ form.submit(class="btn", style="margin-top:0.75rem;") }}
+    </form>
+  </div>
+
+  {% if analysis %}
+
+  <!-- KPI CARDS -->
+  <div class="grid-4" style="margin-bottom: 1.5rem;">
+
+    <div class="kpi-card">
+      <div class="kpi-value">{{ analysis.rows }}</div>
+      <div class="kpi-label">Rows</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value">{{ analysis.columns_count }}</div>
+      <div class="kpi-label">Columns</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value">{{ analysis.total_missing_cells }}</div>
+      <div class="kpi-label">Missing Cells</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-value">{{ analysis.duplicate_rows }}</div>
+      <div class="kpi-label">Duplicates</div>
+    </div>
+
+  </div>
+
+  <!-- INSIGHTS -->
+  {% if analysis.insights %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Smart Insights</div>
+    {% for insight in analysis.insights %}
+      <div class="insight-item">{{ insight }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- COLUMNS + TYPES -->
+  <div class="grid-2" style="margin-bottom: 1.5rem;">
+
+    <div class="card">
+      <div class="card-title">Columns</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:0.5rem;">
+        {% for col in analysis.columns %}
+          <span class="badge badge-blue">{{ col }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Data Types</div>
+      <div class="table-wrap" style="margin-top:0.5rem;">
+        <table>
+          <thead>
+            <tr><th>Column</th><th>Type</th></tr>
+          </thead>
+          <tbody>
+            {% for col, dtype in analysis.data_types.items() %}
+            <tr>
+              <td>{{ col }}</td>
+              <td><span class="badge badge-blue">{{ dtype }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MISSING VALUES -->
+  {% if analysis.missing_values %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Missing Values</div>
+    <div class="table-wrap" style="margin-top:0.5rem;">
+      <table>
+        <thead>
+          <tr><th>Column</th><th>Missing Count</th><th>% Missing</th></tr>
+        </thead>
+        <tbody>
+          {% for col, info in analysis.missing_values.items() %}
+          {% if info.count > 0 %}
+          <tr>
+            <td>{{ col }}</td>
+            <td>{{ info.count }}</td>
+            <td>
+              <span class="badge {{ 'badge-red' if info.percent > 30 else 'badge-yellow' if info.percent > 10 else 'badge-green' }}">
+                {{ info.percent }}%
+              </span>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- TOP CORRELATIONS -->
+  {% if analysis.top_correlations %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Top Correlations</div>
+    <div class="table-wrap" style="margin-top:0.5rem;">
+      <table>
+        <thead>
+          <tr><th>Column 1</th><th>Column 2</th><th>Correlation</th></tr>
+        </thead>
+        <tbody>
+          {% for pair in analysis.top_correlations %}
+          <tr>
+            <td>{{ pair.col1 }}</td>
+            <td>{{ pair.col2 }}</td>
+            <td>
+              <span class="badge {{ 'badge-green' if pair.correlation > 0.8 else 'badge-yellow' if pair.correlation > 0.5 else 'badge-blue' }}">
+                {{ pair.correlation }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- DATA PREVIEW -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Data Preview (first 10 rows)</div>
+    <div class="table-wrap" style="margin-top:0.5rem;">
+      <table>
+        <thead>
+          <tr>
+            {% for col in analysis.columns %}
+              <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in analysis.preview %}
+          <tr>
+            {% for col in analysis.columns %}
+              <td>{{ row[col] }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- CHARTS -->
+  {% if charts %}
+
+  {% if charts.missing_values %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Missing Values Chart</div>
+    <img src="{{ charts.missing_values }}" class="chart-img" style="margin-top:0.75rem;">
+  </div>
+  {% endif %}
+
+  {% if charts.correlation %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Correlation Heatmap</div>
+    <img src="{{ charts.correlation }}" class="chart-img" style="margin-top:0.75rem;">
+  </div>
+  {% endif %}
+
+  {% if charts.histograms %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Distributions</div>
+    <div class="chart-grid" style="margin-top:0.75rem;">
+      {% for img in charts.histograms %}
+        <img src="{{ img }}" class="chart-img">
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if charts.boxplots %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Outlier Detection</div>
+    <div class="chart-grid" style="margin-top:0.75rem;">
+      {% for img in charts.boxplots %}
+        <img src="{{ img }}" class="chart-img">
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if charts.categorical %}
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Category Distributions</div>
+    <div class="chart-grid" style="margin-top:0.75rem;">
+      {% for img in charts.categorical %}
+        <img src="{{ img }}" class="chart-img">
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}
+
+  <!-- ML CTA -->
+  <div class="card" style="text-align:center; padding: 2.5rem;">
+    <div style="font-size:2rem; margin-bottom:0.5rem;">🤖</div>
+    <h3>Ready to Predict?</h3>
+    <p style="margin: 0.5rem 0 1.5rem;">Train a machine learning model on your uploaded dataset.</p>
+    <a href="{{ url_for('auth.ml_prediction') }}" class="btn">Go to ML Prediction →</a>
+  </div>
+
+</div>
+
+{% endblock %}

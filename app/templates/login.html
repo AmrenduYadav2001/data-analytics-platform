@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Login — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page-sm" style="margin-top: 2rem;">
+  <div class="form-card">
+
+    <div class="form-title">Welcome Back</div>
+    <div class="form-subtitle">Login to access your analytics dashboard</div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.email.label }}
+        {{ form.email(placeholder="Enter email") }}
+        {% for error in form.email.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(placeholder="Enter password") }}
+        {% for error in form.password.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group" style="margin-top:1.5rem;">
+        {{ form.submit(class="btn btn-full") }}
+      </div>
+
+    </form>
+
+    <div class="form-link">
+      Don't have an account? <a href="{{ url_for('auth.register') }}">Create one here</a>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Stock Analyzer — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page">
+
+  <div style="margin-bottom: 1.5rem;">
+    <h2>📈 Stock Analyzer</h2>
+    <p>Real-time NSE stock analysis with Buy/Sell signals and risk management.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <form method="POST" style="display:flex; gap:10px; align-items:flex-end;">
+      <div class="form-group" style="flex:1; margin:0;">
+        <label>Stock Symbol</label>
+        <input type="text" name="symbol" placeholder="e.g. RELIANCE, TCS, INFY, HDFCBANK" required>
+      </div>
+      <button type="submit" class="btn">Analyze →</button>
+    </form>
+    <div style="margin-top:0.75rem; font-size:0.8rem; color:var(--text-muted);">
+      Popular: RELIANCE &nbsp;·&nbsp; TCS &nbsp;·&nbsp; INFY &nbsp;·&nbsp; HDFCBANK &nbsp;·&nbsp; WIPRO &nbsp;·&nbsp; BAJFINANCE
+    </div>
+  </div>
+
+  {% if result %}
+
+  <!-- STOCK HEADER -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+
+      <div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">{{ result.sector }}</div>
+        <h2 style="margin-bottom:4px;">{{ result.company_name }}</h2>
+        <div style="font-size:0.9rem; color:var(--text-muted);">{{ result.symbol }} · NSE</div>
+      </div>
+
+      <div style="text-align:right;">
+        <div class="stock-price">₹{{ result.current_price }}</div>
+        <span class="badge {{ 'badge-green' if result.signal == 'BUY' else 'badge-red' if result.signal == 'SELL' else 'badge-yellow' }}" style="font-size:1rem; padding:6px 18px; margin-top:6px;">
+          {{ result.signal }}
+        </span>
+      </div>
+
+    </div>
+
+    <hr class="divider">
+
+    <div class="grid-3">
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">RSI</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:1.1rem;
+          color:{{ '#ef4444' if result.rsi > 70 else '#22c55e' if result.rsi < 35 else '#f1f5f9' }}">
+          {{ result.rsi }}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Volatility</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:1.1rem;">{{ result.volatility }}%</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Market Cap</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:1.1rem;">
+          {% if result.market_cap != 'N/A' %}
+            ₹{{ "{:,.0f}".format(result.market_cap / 10000000) }}Cr
+          {% else %}N/A{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RISK + PREDICTION -->
+  <div class="grid-2" style="margin-bottom: 1.5rem;">
+
+    <div class="card">
+      <div class="card-title">🛡️ Risk Management</div>
+      <div style="margin-top:0.75rem;">
+
+        <div class="risk-row">
+          <span>Stop Loss</span>
+          <span class="text-red">₹{{ result.risk.stop_loss }}</span>
+        </div>
+        <div class="risk-row">
+          <span>Target 1</span>
+          <span class="text-green">₹{{ result.risk.target_1 }}</span>
+        </div>
+        <div class="risk-row">
+          <span>Target 2</span>
+          <span class="text-green">₹{{ result.risk.target_2 }}</span>
+        </div>
+        <div class="risk-row">
+          <span>Max Loss</span>
+          <span class="text-red">₹{{ result.risk.max_loss }}</span>
+        </div>
+        <div class="risk-row">
+          <span>Max Profit</span>
+          <span class="text-green">₹{{ result.risk.max_profit }}</span>
+        </div>
+        <div class="risk-row">
+          <span>Risk / Reward</span>
+          <span style="font-family:'JetBrains Mono',monospace;">1 : {{ result.risk.rr_ratio }}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔮 7-Day Prediction</div>
+      <div style="margin-top:1.5rem; text-align:center;">
+
+        <div style="font-size:3rem; margin-bottom:0.5rem;">
+          {{ '📈' if 'UP' in result.prediction.direction else '📉' }}
+        </div>
+
+        <div style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;
+          color:{{ '#22c55e' if 'UP' in result.prediction.direction else '#ef4444' }}">
+          {{ result.prediction.direction }}
+        </div>
+
+        <div style="font-size:0.9rem; color:var(--text-muted);">Expected change</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:1.25rem;
+          color:{{ '#22c55e' if result.prediction.change_pct > 0 else '#ef4444' }}">
+          {{ '+' if result.prediction.change_pct > 0 else '' }}{{ result.prediction.change_pct }}%
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PLOTLY CHART -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-title">Price Chart</div>
+    <div id="chart" style="margin-top:0.75rem;"></div>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    var chartData = {{ result.chart | safe }};
+    chartData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+    chartData.layout.plot_bgcolor  = 'rgba(0,0,0,0)';
+    chartData.layout.font          = { color: '#94a3b8', family: 'Inter' };
+    chartData.layout.xaxis         = { ...chartData.layout.xaxis, gridcolor: 'rgba(255,255,255,0.05)', color: '#94a3b8' };
+    chartData.layout.yaxis         = { ...chartData.layout.yaxis, gridcolor: 'rgba(255,255,255,0.05)', color: '#94a3b8' };
+    Plotly.newPlot('chart', chartData.data, chartData.layout, { responsive: true });
+  </script>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

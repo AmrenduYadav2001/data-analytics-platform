@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Register — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page-sm" style="margin-top: 2rem;">
+  <div class="form-card">
+
+    <div class="form-title">Create Account</div>
+    <div class="form-subtitle">Start analyzing your data for free</div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.username.label }}
+        {{ form.username(placeholder="Enter username") }}
+        {% for error in form.username.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.email.label }}
+        {{ form.email(placeholder="Enter email") }}
+        {% for error in form.email.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label }}
+        {{ form.password(placeholder="Create password") }}
+        {% for error in form.password.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.confirm_password.label }}
+        {{ form.confirm_password(placeholder="Confirm password") }}
+        {% for error in form.confirm_password.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-group" style="margin-top:1.5rem;">
+        {{ form.submit(class="btn btn-full") }}
+      </div>
+
+    </form>
+
+    <div class="form-link">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

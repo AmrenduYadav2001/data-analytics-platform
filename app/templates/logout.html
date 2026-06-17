@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Logged Out — Motko Analysis{% endblock %}
+
+{% block content %}
+
+<div class="page-sm" style="margin-top: 4rem;">
+  <div class="card" style="text-align: center; padding: 3rem 2rem;">
+
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">👋</div>
+
+    <h2 style="margin-bottom: 0.5rem;">Logged Out</h2>
+    <p style="margin-bottom: 2rem;">You have been safely logged out of your account.</p>
+
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('auth.login') }}" class="btn">Login Again</a>
+      <a href="{{ url_for('auth.home') }}" class="btn btn-secondary">Go to Home</a>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
